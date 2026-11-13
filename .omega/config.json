@@ -1,0 +1,16 @@
+{
+  "name": "vswami",
+  "worker_model": "sonnet",
+  "orchestrator_model": "opus",
+  "py": "python3",
+  "checks": {
+    "test": "python3 tests/check.py",
+    "build": null,
+    "lint": null,
+    "run": null
+  },
+  "folders": {
+    "videoswami": "the CLI package",
+    "tests": "end-to-end checks"
+  }
+}

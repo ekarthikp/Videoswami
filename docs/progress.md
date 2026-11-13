@@ -1,0 +1,20 @@
+# Progress
+
+## Done
+
+- 2026-11-13 - Orchestrator-and-workers setup installed
+- 2026-11-13 - Brief 001: The videoswami package implements everything SPEC.md assigns to worker CORE (ff.py, spec.py, render.py, __main__.py, build.py) so that prob…
+- 2026-11-13 - Brief 002: videoswami/analyze.py and videoswami/quick.py implement every command SPEC.md assigns to worker TOOLS, each exposed through a register(subp…
+- 2026-11-13 - Brief 003: videoswami/speech.py implements everything the 'speech.py (worker SPEECH)' section of docs/SPEC.md specifies (transcript API, transcribe wi…
+- 2026-11-13 - Brief 005: The 'finish.py + captions.py + templates.py, and CORE changes' section of docs/SPEC.md is fully implemented: animated captions, title templ…
+- 2026-11-13 - Brief 004: videoswami/smart.py implements everything the 'smart.py (worker SMART)' section of docs/SPEC.md specifies (reframe, highlights, beats, beat…
+
+## Next
+
+- Run one small task through the brief -> builder -> check loop
+
+## Log
+
+- 2026-11-13 - Set up the project structure, worker agents and helper scripts.
+- 2026-11-13 - Pivoted from web editor to ffmpeg CLI + skill; core and tools briefs accepted
+- 2026-11-13 - v2: speech, smart, finish briefs accepted; all checks pass
