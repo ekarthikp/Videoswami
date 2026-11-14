@@ -641,6 +641,11 @@ def _build(spec, out_path, work):
         a = _item_audio(g, before, item)
         streams.append((v, a))
     video, audio = _join(g, items, out, streams)
+    if spec.get("look"):  # colour-match the finished timeline to the reference, before overlays and captions
+        from . import reference
+        grade = reference.look_chain(spec)
+        if grade:
+            video = g.add([video], grade)
 
     # Overlays, in order, on top of the finished timeline.
     pip_sounds = []

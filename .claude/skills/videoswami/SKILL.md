@@ -79,6 +79,20 @@ The speech commands write a retimed `<OUT stem>.transcript.json`, so captions
 added afterwards still line up. Captions and overlays in a spec use OUTPUT
 time: cut first, caption the result.
 
+## Visual references
+
+- The user points at a video or image they like ("make mine look like this"):
+  `vs reference REF` and open its `contact_sheet` to see it, then
+  `vs match FILE --reference REF -o OUT` (`--only color,loudness,frame`,
+  `--strength 0..1`). It transfers overall brightness, contrast, saturation,
+  warmth, loudness, frame shape and fps. It does not copy hues exactly or any
+  content; use the returned `pacing_hint` and what you saw on the contact
+  sheet (caption style and position, titles) to choose the rest yourself. In a
+  spec: `"look": {"reference": "ref.mp4"}`. Take the reference's grammar, never
+  its content: do not reproduce its text, logos or footage.
+- Choosing a caption style, title template, transition or fit: open
+  `docs/gallery/contact.jpg` (and `docs/VISUAL-GUIDE.md`) to pick by eye.
+
 ## 3. Edit spec for anything bigger
 
 Write `edit.json` next to the media, `vs validate edit.json`, then

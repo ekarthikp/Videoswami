@@ -205,3 +205,50 @@ using numpy/cv2 only if importable. Must run in reasonable time on a 10 minute v
 - Export profiles: `output.profile` = `reels|shorts|tiktok` (1080x1920 30 fps, loudnorm), `youtube` (1920x1080), `youtube-4k` (3840x2160),
   `square` (1080x1080), `portrait` (1080x1350), `whatsapp` (1280x720 max, crf 28, 128k audio), `x` (1280x720). Explicit output keys override the profile.
   Commands: `profiles` -> `{profiles:{name:{...}}}`; `export FILE --profile reels [--fit blur|cover|contain] -o OUT`.
+
+---
+
+# Version 3 additions
+
+## reference.py (worker REFERENCE): match the look of a reference video
+
+"Visual reference": the user points at a video (or image) they like; VideoSwami measures its look and applies it to their footage.
+Measurement samples small frames through ffmpeg pipes (same approach as smart.py); numpy optional with a pure-Python fallback
+(honour `VIDEOSWAMI_NO_NUMPY=1`).
+
+- `reference REF [--out DIR] [--frames 12]` -> the style profile, also written to `DIR/style.json` (default DIR: `<REF stem>.style/` beside REF), plus
+  `DIR/contact.jpg` (same contact sheet as `inspect`) so the AI can also LOOK at the reference:
+  ```
+  { "ok":true, "style":"…/style.json", "contact_sheet":"…/contact.jpg",
+    "profile": {
+      "source":"ref.mp4", "kind":"video"|"image",
+      "frame":  { "width":1080, "height":1920, "aspect":"9:16", "fps":30 },          // aspect reduced to the nearest of 9:16 4:5 1:1 4:3 16:9 21:9, else "W:H"
+      "color":  { "luma_mean":0..255, "luma_p5":…, "luma_p95":…, "contrast":p95-p5, "saturation":0..1 (mean HSV S),
+                  "temperature":-1..1 ((R-B)/(R+B) of the mean colour, + = warm), "mean_rgb":[r,g,b] },
+      "pacing": { "cuts":n, "avg_shot":seconds, "median_shot":seconds, "shots_per_minute":x },   // video only; uses the same cut detector as `scenes`
+      "audio":  { "integrated":LUFS|null, "true_peak":…, "lra":… },                 // null when the reference has no sound
+      "captions": { "likely":bool, "position":"bottom"|"center"|"top"|null }       // heuristic: a band with persistent high-contrast small detail; best effort
+    } }
+  ```
+- `match FILE --reference REF_OR_STYLE_JSON [--only color,loudness,frame] [--strength 1.0] [--fit cover|blur|contain] -o OUT`
+  Applies what can be transferred, by default all three:
+  - `color`: brightness/contrast/gamma/saturation/temperature computed from the two profiles so FILE's stats land on the reference's
+    (iterate once: measure the result on sampled frames and correct, so the match is close, not just directionally right). `--strength` 0..1 blends.
+  - `loudness`: loudnorm to the reference's integrated loudness (skipped when either has no audio).
+  - `frame`: output aspect and fps of the reference (size = reference size capped at 1920 on the long side), using `--fit` (default cover).
+  -> `{..., applied:{color:{...}|null, loudness:{target}|null, frame:{width,height,fps}|null}, before:{color}, after:{color}, reference:{color},
+       pacing_hint:"reference averages 1.2 s per shot (50 cuts/min); this clip has 0 cuts"}`. Pacing is reported, never auto-applied.
+- Edit spec: top-level `"look": { "reference":"ref.mp4"|"style.json", "strength":1.0 }` applies the same colour match to the whole finished
+  timeline (before overlays and captions). Implemented in spec.py/render.py by calling into reference.py.
+Python API: `profile(path) -> dict`, `color_filters(src_color, ref_color, strength) -> str` (an ffmpeg filter chain).
+
+## Visual guide (worker GALLERY)
+
+`python3 tools/make_gallery.py [--out docs/gallery]` renders a small picture of every look VideoSwami offers, using the CLI itself on a
+generated demo clip, and writes `docs/VISUAL-GUIDE.md` showing each picture with the exact command or spec snippet that produces it.
+Sections and files (all JPG, 640 px wide unless vertical; vertical ones 360 px wide):
+`captions-<style>.jpg` x6, `title-<template>.jpg` x5, `fit-<contain|cover|stretch|blur>.jpg` x4 (16:9 source into 9:16),
+`transition-<fade|wipeleft|slideup|circleopen|dissolve>.jpg` x5 (frame at the middle of the transition), `animate-<fade|slide-up|pop>.jpg` x3 (mid-animation),
+`look-<grayscale|vignette|warm|cool|blur|sharpen>.jpg` x6, `profile-<name>.jpg` x9 (one frame per export profile, showing its shape),
+plus `contact.jpg` (one sheet of everything). The demo clip must look like footage, not a test card: a soft two-colour gradient background with a
+simple drawn presenter shape and a few moving elements, generated with ffmpeg lavfi only (no downloads), with a transcript fixture for captions.
