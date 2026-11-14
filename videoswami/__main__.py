@@ -79,7 +79,7 @@ def build_parser():
     p.set_defaults(func=cmd_render)
 
     # Command modules owned by the TOOLS worker; the core works without them.
-    for name in ("analyze", "quick", "speech", "smart", "finish"):
+    for name in ("analyze", "quick", "speech", "smart", "finish", "reference"):
         try:
             module = __import__("videoswami." + name, fromlist=["register"])
         except ImportError as exc:

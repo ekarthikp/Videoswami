@@ -3,6 +3,10 @@
 A video editor you drive by talking to Claude. Give Claude a video, say what you want, and it
 plans the edit, renders it with ffmpeg, checks the frames, and hands back the file.
 
+[![VideoSwami launch video](docs/media/videoswami-launch.jpg)](docs/media/videoswami-launch.mp4)
+
+*Click the picture for the 22-second launch video. Music: Sascha Ende, ende.app (CC BY 4.0).*
+
 VideoSwami is two things:
 
 - **`videoswami`**: a command-line editor built on ffmpeg. Python 3.9+, standard library only.
@@ -39,7 +43,7 @@ writes a file, inputs are never modified, `--dry-run` shows the ffmpeg commands.
 | Look and listen | `probe` `inspect` `frames` `silences` `scenes` `loudness` `transcribe` `find` `beats` |
 | Cut and join | `trim` `cut` `keep` `concat` `split` `speed` `reverse` `remove-silence` |
 | Speech editing | `cut-speech` `remove-fillers` `edit-text` |
-| Framing and look | `resize` `crop` `rotate` `color` `stabilize` `denoise` `reframe` `enhance` |
+| Framing and look | `resize` `crop` `rotate` `color` `stabilize` `denoise` `reframe` `enhance` `reference` `match` |
 | Additions | `text` `watermark` `pip` `music` `subtitles` `captions` `title` `fade` |
 | Sound | `mute` `volume` `normalize` `extract-audio` |
 | Smart | `highlights` `beat-sync` `slideshow` |
@@ -49,11 +53,40 @@ Multi-step edits go in one JSON edit spec (timeline, overlays, captions, music) 
 single pass: `videoswami render edit.json -o out.mp4`. The full command and spec reference is in
 [docs/SPEC.md](docs/SPEC.md).
 
+## See the styles
+
+[docs/VISUAL-GUIDE.md](docs/VISUAL-GUIDE.md) shows a picture of every caption style, title template, transition, fit, look and
+export profile, each with the command that makes it. Regenerate it with `python3 tools/make_gallery.py`.
+
+![Style catalogue](docs/gallery/contact.jpg)
+
+## Match a reference video
+
+Point VideoSwami at a video or image whose look you like:
+
+```
+videoswami reference liked.mp4                       # measures colour, framing, cut pacing, loudness; writes a contact sheet
+videoswami match mine.mp4 --reference liked.mp4 -o out.mp4
+```
+
+`match` transfers overall brightness, contrast, saturation and warmth, the loudness, and the frame shape and frame rate. It reports the
+reference's cut pacing as a hint and does not copy exact hues or content. In an edit spec use `"look": {"reference": "liked.mp4"}`.
+
+![Before, after match, reference](docs/media/match-before-after-reference.jpg)
+
+## ClipSwami: long video to short clips
+
+ClipSwami is included as a sub-skill. In Claude Code: `/clipswami <video or link>` finds the best moments and returns finished vertical
+clips with captions; `/clipswami-cut <video> <start> <end>` cuts one clip; `/clipswami-setup` installs its helpers. Engine:
+`python3 -m clipswami --help`.
+
 ## Development
 
 ```
 python3 tests/check.py          # core + one-shot commands
 python3 tests/check2.py         # speech, smart edits, finishing
+python3 tests/check3.py         # reference matching, visual guide
+python3 -m unittest discover -s tests -p "test_clipswami.py"
 python3 build.py                # rebuild dist/videoswami.pyz
 ```
 

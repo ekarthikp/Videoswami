@@ -19,7 +19,7 @@ from pathlib import Path
 from . import ff
 from .ff import VSError
 
-TOP_KEYS = ["output", "background", "timeline", "overlays", "subtitles", "audio", "captions"]
+TOP_KEYS = ["output", "background", "timeline", "overlays", "subtitles", "audio", "captions", "look"]
 OUTPUT_KEYS = ["width", "height", "fps", "vcodec", "crf", "preset", "acodec", "audio_bitrate", "loudnorm",
                "faststart", "pix_fmt", "profile"]
 # Export profiles. Explicit output keys override these; max_width/max_height only cap the default size (never scale up).
@@ -464,6 +464,17 @@ def _output(raw, items):
     return out
 
 
+def _look(raw, base):
+    """Top-level `look`: grade the whole timeline to match a reference video, image or style.json."""
+    if not isinstance(raw, dict):
+        raise VSError("look: expected an object such as {\"reference\": \"ref.mp4\"}")
+    _keys(raw, ["reference", "strength"], "look")
+    if "reference" not in raw:
+        raise VSError("look.reference: required (a video, image or style.json)")
+    return {"reference": _path(raw["reference"], base, "look.reference"),
+            "strength": _num(raw.get("strength", 1.0), "look.strength", 0, 1)}
+
+
 # --------------------------------------------------------------------------- entry point
 
 def load_spec(source):
@@ -541,6 +552,7 @@ def _normalise(data, base):
         "subtitles": _subtitles(data["subtitles"], base) if data.get("subtitles") is not None else None,
         "audio": [_audio_track(a, i, base, prober) for i, a in enumerate(audio)],
         "captions": None,
+        "look": _look(data["look"], base) if data.get("look") is not None else None,
         "frames": total_frames,
         "duration": total,
     }
