@@ -28,6 +28,14 @@ Every command prints one JSON object on the last stdout line (`ok`, `output`,
 `vs <command> -h` lists exact flags. The full command list and the edit-spec
 format are in `docs/SPEC.md`: read it before writing a spec.
 
+## Sub-skill: ClipSwami
+
+When the request is "turn this long video (or link) into several short clips",
+hand over to the `clipswami` skill (`python3 -m clipswami ...`). It finds the
+moments, reframes, captions and renders them. Use `clipswami-cut` for one clip
+from exact timestamps and `clipswami-setup` for first-time install. Everything
+else stays here.
+
 ## 1. Watch and listen before cutting
 
 ```
